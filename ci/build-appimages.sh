@@ -64,19 +64,23 @@ mv ./appimageupdatetool.AppDir ./AppDir
 find ./AppDir
 
 # bundle application
-wget "$LIB4BN" -O ./AppDir/lib4bin && (
-	cd ./AppDir
-	chmod +x ./lib4bin
-	mv ./usr ./shared
+cp -vn /lib64/ld-linux-x86-64.so.2 ./
+ldd ./usr/bin/* 2>/dev/null \
+	| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
+find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
+( cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \; )
 
-	cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
-	cp -v "$REPO_ROOT"/resources/appimage.png ./
-	ln -s appimage.png ./.DirIcon
+echo '#!/bin/sh
+CURRENTDIR="$(readlink -f "$(dirname "$0")")"
 
-	./lib4bin -p -v -k -s ./shared/bin/*
-	ln ./sharun ./AppRun
-	./sharun -g
-)
+exec "$CURRENTDIR"/ld-linux-x86-64.so.2 \
+	--library-path "$CURRENTDIR"/usr/lib \
+	"$CURRENTDIR"/usr/bin/appimageupdatetoo "$@"' > ./AppRun
+chmod +x ./AppRun
+
+cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
+cp -v "$REPO_ROOT"/resources/appimage.png ./
+ln -s appimage.png ./.DirIcon
 
 # Make appimage with uruntime
 wget "$APPIMAGETOOL" -O ./appimagetool
