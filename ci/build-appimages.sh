@@ -71,6 +71,9 @@ find ./AppDir
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
 	find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
 	cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \;
+	cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
+	cp -v "$REPO_ROOT"/resources/appimage.png ./
+	ln -s appimage.png ./.DirIcon
 )
 
 echo '#!/bin/sh
@@ -80,10 +83,6 @@ exec "$CURRENTDIR"/ld-linux-x86-64.so.2 \
 	--library-path "$CURRENTDIR"/usr/lib \
 	"$CURRENTDIR"/usr/bin/appimageupdatetool "$@"' > ./AppRun
 chmod +x ./AppRun
-
-cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
-cp -v "$REPO_ROOT"/resources/appimage.png ./
-ln -s appimage.png ./.DirIcon
 
 # Make appimage with uruntime
 wget "$APPIMAGETOOL" -O ./appimagetool
