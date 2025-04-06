@@ -100,7 +100,7 @@ CURRENTDIR="$(readlink -f "$(dirname "$0")")"
 
 exec "$CURRENTDIR"/ld-linux.so \
 	--library-path "$CURRENTDIR"/usr/lib \
-	"$CURRENTDIR"/usr/bin/appimageupdatetool "$@"' > ./AppRun
+	"$CURRENTDIR"/usr/bin/appimageupdatetool "$@"' > ./AppDir/AppRun
 chmod +x ./AppDir/AppRun
 
 # Make appimage with uruntime
