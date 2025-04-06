@@ -64,7 +64,8 @@ mv ./appimageupdatetool.AppDir ./AppDir
 find ./AppDir
 
 # bundle application
-cd ./AppDir && (
+(
+	cd ./AppDir
 	cp -vn /lib64/ld-linux-x86-64.so.2 ./
 	ldd ./usr/bin/* 2>/dev/null \
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
