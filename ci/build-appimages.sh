@@ -71,9 +71,28 @@ find ./AppDir
 	cp -v "$REPO_ROOT"/resources/appimage.png ./
 	ln -s appimage.png ./.DirIcon
 
-	cp -vn /lib64/ld-linux-x86-64.so.2 ./
+	case "${ARCH}" in
+		"x86_64")
+			ld_linux="ld-linux-x86-64.so.2"
+			;;
+		"aarch64")
+			ld_linux="ld-linux-aarch64.so.1"
+			;;
+		*)
+			echo "Unsupported ARCH: '$ARCH'"
+			exit 1
+			;;
+	esac
+		
 	ldd ./usr/bin/* 2>/dev/null \
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
+
+	cp -vn /usr/lib/$ARCH-linux-gnu/libpthread.so.0 ./usr/lib
+	
+	if ! mv ./usr/lib/${ld_linux} ./ld-linux.so; then
+		cp -v /usr/lib/${ARCH}-linux-gnu/${ld_linux} ./ld-linux.so
+	fi
+
 	find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
 	cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \;
 )
@@ -81,10 +100,10 @@ find ./AppDir
 echo '#!/bin/sh
 CURRENTDIR="$(readlink -f "$(dirname "$0")")"
 
-exec "$CURRENTDIR"/ld-linux-x86-64.so.2 \
+exec "$CURRENTDIR"/ld-linux.so \
 	--library-path "$CURRENTDIR"/usr/lib \
 	"$CURRENTDIR"/usr/bin/appimageupdatetool "$@"' > ./AppRun
-chmod +x ./AppRun
+chmod +x ./AppDir/AppRun
 
 # Make appimage with uruntime
 wget "$APPIMAGETOOL" -O ./appimagetool
