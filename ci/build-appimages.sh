@@ -66,14 +66,16 @@ find ./AppDir
 # bundle application
 (
 	cd ./AppDir
+
+	cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
+	cp -v "$REPO_ROOT"/resources/appimage.png ./
+	ln -s appimage.png ./.DirIcon
+
 	cp -vn /lib64/ld-linux-x86-64.so.2 ./
 	ldd ./usr/bin/* 2>/dev/null \
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
 	find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
 	cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \;
-	cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
-	cp -v "$REPO_ROOT"/resources/appimage.png ./
-	ln -s appimage.png ./.DirIcon
 )
 
 echo '#!/bin/sh
