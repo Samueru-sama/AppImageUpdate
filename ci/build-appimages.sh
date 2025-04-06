@@ -64,18 +64,20 @@ mv ./appimageupdatetool.AppDir ./AppDir
 find ./AppDir
 
 # bundle application
-cp -vn /lib64/ld-linux-x86-64.so.2 ./
-ldd ./usr/bin/* 2>/dev/null \
-	| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
-find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
-( cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \; )
+cd ./AppDir && (
+	cp -vn /lib64/ld-linux-x86-64.so.2 ./
+	ldd ./usr/bin/* 2>/dev/null \
+		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
+	find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
+	cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \;
+)
 
 echo '#!/bin/sh
 CURRENTDIR="$(readlink -f "$(dirname "$0")")"
 
 exec "$CURRENTDIR"/ld-linux-x86-64.so.2 \
 	--library-path "$CURRENTDIR"/usr/lib \
-	"$CURRENTDIR"/usr/bin/appimageupdatetoo "$@"' > ./AppRun
+	"$CURRENTDIR"/usr/bin/appimageupdatetool "$@"' > ./AppRun
 chmod +x ./AppRun
 
 cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
