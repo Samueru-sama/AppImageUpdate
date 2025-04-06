@@ -70,26 +70,11 @@ find ./AppDir
 	cp -v "$REPO_ROOT"/resources/appimageupdatetool.desktop ./ 
 	cp -v "$REPO_ROOT"/resources/appimage.png ./
 	ln -s appimage.png ./.DirIcon
-
-	case "${ARCH}" in
-		"x86_64")
-			ld_linux="ld-linux-x86-64.so.2"
-			;;
-		"aarch64")
-			ld_linux="ld-linux-aarch64.so.1"
-			;;
-		*)
-			echo "Unsupported ARCH: '$ARCH'"
-			exit 1
-			;;
-	esac
+	
+	find /lib /lib64 /usr -type f -name 'ld-linux*' -exec cp -vn {} ./ld-linux.so \;  
 		
 	ldd ./usr/bin/* 2>/dev/null \
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
-	
-	if ! mv ./usr/lib/${ld_linux} ./ld-linux.so; then
-		cp -v /lib64/${ld_linux} ./ld-linux.so
-	fi
 
 	find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
 	cd ./usr/lib && find ./*/* -type f -regex '.*\.so.*' -exec ln -s {} ./ \;
