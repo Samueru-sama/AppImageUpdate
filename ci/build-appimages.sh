@@ -71,7 +71,7 @@ find ./AppDir
 	cp -v "$REPO_ROOT"/resources/appimage.png ./
 	ln -s appimage.png ./.DirIcon
 	
-	find / -type f -name 'ld-linux*' -exec cp -vn {} ./ld-linux.so \; || true
+	find /lib* /usr/lib -type f -name 'ld-linux*' -exec cp -vn {} ./ld-linux.so \; || true
 		
 	ldd ./usr/bin/* 2>/dev/null \
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
