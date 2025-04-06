@@ -86,11 +86,9 @@ find ./AppDir
 		
 	ldd ./usr/bin/* 2>/dev/null \
 		| awk -F"[> ]" '{print $4}' | xargs -I {} cp -vn {} ./usr/lib
-
-	cp -vn /usr/lib/$ARCH-linux-gnu/libpthread.so.0 ./usr/lib || true
 	
 	if ! mv ./usr/lib/${ld_linux} ./ld-linux.so; then
-		cp -v /usr/lib/${ARCH}-linux-gnu/${ld_linux} ./ld-linux.so
+		cp -v /lib64/${ld_linux} ./ld-linux.so
 	fi
 
 	find ./usr -type f -exec strip -s -R .comment --strip-unneeded {} ';'
