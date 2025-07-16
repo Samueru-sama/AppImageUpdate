@@ -1,4 +1,11 @@
-# AppImageUpdate Enhanced Edition
+# AppImageUpdate Enhanced Edition 🐧
+
+[![GitHub Downloads](https://img.shields.io/github/downloads/pkgforge-dev/AppImageUpdate-Enhanced-Edition/total?logo=github&label=GitHub%20Downloads)](https://github.com/pkgforge-dev/AppImageUpdate-Enhanced-Edition/releases/latest)
+[![CI Build Status](https://github.com//pkgforge-dev/AppImageUpdate-Enhanced-Edition/actions/workflows/main.yml/badge.svg)](https://github.com/pkgforge-dev/AppImageUpdate-Enhanced-Edition/releases/latest)
+
+* [Latest Stable Release](https://github.com/pkgforge-dev/AppImageUpdate-Enhanced-Edition/releases/latest)
+
+---
 
 Fork of AppImageUpdate with the following advantages: 
 
