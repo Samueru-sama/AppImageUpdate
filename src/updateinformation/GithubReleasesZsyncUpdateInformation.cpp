@@ -17,19 +17,38 @@ namespace appimage::update::updateinformation {
         auto filename = _updateInformationComponents[4];
 
         std::stringstream url;
-        url << "https://api.gh.pkgforge.dev/repos/" << username << "/" << repository << "/releases/";
+        url << "https://api.gh.pkgforge.dev/repos/" << username << "/" << repository << "/releases";
 
-        if (tag.find("latest") != std::string::npos) {
+        bool parseListResponse = false;
+        bool usePrereleases = false;
+        bool useReleases = true;
+
+        // TODO: this snippet does not support pagination
+        // it is more reliable for "known" releases ("latest" and named ones, e.g., "continuous") to query them directly
+        // we expect paginated responses to be very unlikely
+        if (tag == "latest-pre") {
+            usePrereleases = true;
+            useReleases = false;
+            parseListResponse = true;
+        } else if (tag == "latest-all") {
+            usePrereleases = true;
+            parseListResponse = true;
+        } else if (tag == "latest") {
             issueStatusMessage("Fetching latest release information from GitHub API");
-            url << "latest";
+            url << "/latest";
         } else {
             std::ostringstream oss;
             oss << "Fetching release information for tag \"" << tag << "\" from GitHub API.";
             issueStatusMessage(oss.str());
-            url << "tags/" << tag;
+            url << "/tags/" << tag;
         }
 
-        auto response = cpr::Get(cpr::Url{url.str()});
+        if (parseListResponse) {
+            issueStatusMessage("Fetching releases list from GitHub API");
+        }
+
+        auto urlStr = url.str();
+        auto response = cpr::Get(cpr::Url{urlStr});
 
         nlohmann::json json;
 
@@ -57,6 +76,32 @@ namespace appimage::update::updateinformation {
             throw UpdateInformationError(oss.str());
         }
 
+        if (parseListResponse) {
+            bool found = false;
+
+            for (auto& item : json) {
+                if (item["prerelease"].get<bool>() && usePrereleases) {
+                    json = item;
+                    found = true;
+                    break;
+                }
+
+                if (!useReleases) {
+                    continue;
+                }
+
+                json = item;
+                found = true;
+                break;
+            }
+
+            if (!found) {
+                throw UpdateInformationError(std::string("Failed to find suitable release"));
+            }
+
+            issueStatusMessage("Found matching release: " + json["name"].get<std::string>());
+        }
+
         // not ideal, but allows for returning a match for the entire line
         auto pattern = "*" + filename;
 
@@ -74,8 +119,9 @@ namespace appimage::update::updateinformation {
 
         for (const auto& asset : assets) {
             const auto browserDownloadUrl = asset["browser_download_url"].get<std::string>();
+            const auto name = asset["name"].get<std::string>();
 
-            if (fnmatch(pattern.c_str(), browserDownloadUrl.c_str(), 0) == 0) {
+            if (fnmatch(pattern.c_str(), name.c_str(), 0) == 0) {
                 matchingUrls.emplace_back(browserDownloadUrl);
             }
         }
